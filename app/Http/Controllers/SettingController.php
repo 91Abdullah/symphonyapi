@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SettingController extends Controller
 {
@@ -14,7 +15,20 @@ class SettingController extends Controller
      */
     public function index()
     {
-        //
+        $data = Setting::query()->get();
+        $setting=null;
+        $myObj = new \stdClass();
+        foreach ($data as $value)
+        {
+            $id= $value->id;
+            $column[]=array('title'=> $value->key, 'dataIndex'=> $value->key, 'key'=> $value->key);
+            $key= $value->key;
+            $myObj->$key= $value->value;
+        }
+        $setting= array($myObj);
+        $column[] = array('title'=> 'action', 'dataIndex'=> 'action', 'key'=>'action');
+
+        return response()->json(['column'=> array_merge($column), 'settings'=> $setting, 'id'=> $id]);
     }
 
     /**
@@ -69,7 +83,23 @@ class SettingController extends Controller
      */
     public function update(Request $request, Setting $setting)
     {
-        //
+//        Add validation according to req
+//        $request->validate([
+//            'server_address' => ['required', 'ipv4'],
+//            'wss_port' => ['required', 'numeric'],
+//            'manager_port' => ['required'],
+//            'username' => ['required'],
+//            'secret' => ['required'],
+//            'connection_timeout' => ['required', 'numeric'],
+//            'read_timeout' => ['required', 'numeric'],
+//        ]);
+        try {
+            $setting->update($request->all());
+//            activity('Role Updated')->causedBy(Auth::user())->performedOn($setting)->withProperties($setting)->log('updated');
+            return response()->json("Settings has been updated.");
+        } catch (\Exception $exception) {
+            return response()->json($exception->getMessage());
+        }
     }
 
     /**
